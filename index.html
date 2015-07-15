@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>
+        function send() {
+            ws.send(document.getElementById('msg').value);
+        }
+ 
+		var host = location.origin.replace(/^http/, 'ws')
+		var ws = new WebSocket(host);
+		console.log(host);
+        ws.onopen = function (event) {
+            document.getElementById("messages").innerHTML += "<div style='font-weight:bold'>ws.onopen</div>";
+        };
+        ws.onmessage = function (event) {
+            document.getElementById("messages").innerHTML += "<div>" + event.data + "</div>";
+            console.log(JSON.parse(event.data));
+        };
+        ws.onclose = function (event) {
+            document.getElementById("messages").innerHTML += "<div style='font-weight:bold'>ws.onclose</div>";
+        };
+		
+		// 55秒のタイムアウト対策
+		var timer = setInterval(function() {
+			ws.send(':\n\n');
+		}, 30000);
+		
+		// 最初の30秒のタイムアウト対策
+		ws.send(':\n\n');
+    </script>
+</head>
+<body>
+<strong>furufuru-ball-server test</strong><br>
+<input type="text" id="msg"/>
+<input type="button" value="send" onclick="send()"/>
+<br>
+<hr>
+<div id="messages"/>
+</body>
+</html>
