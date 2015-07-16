@@ -32,8 +32,40 @@ wss.on('connection', function connection(ws) {
     // メッセージ受信時
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
-    });
 
-    ws.send('something');
+        var jsonObject;
+        try {
+            jsonObject = JSON.parse(message);
+        } catch (e) {
+            console.log(e);
+            return;
+        }
+
+        // 球が画面外に出たら...
+        if (jsonObject['move'] == 'out') {
+            // ランダムに他の端末を選択
+            var connection = getRandomConnection();
+            if (connection != null) {
+                // その端末に球を送る
+                var m = {'move':'in'};
+                connection.send(JSON.stringify(m));
+            }
+        }
+    });
 });
+
+/**
+ * Websocket コネクション配列の中から、ランダムにコネクションを返す
+ * @returns {*}
+ */
+function getRandomConnection() {
+    var connection = null;
+    var length = connections.length;
+    if (length > 0) {
+        var index = Math.floor(Math.random() * length);
+        connection = connections[index];
+    }
+    return connection;
+}
+
 server.listen(process.env.PORT || 5000);
