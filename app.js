@@ -18,6 +18,11 @@ var connections = [];
 // 接続時
 wss.on('connection', function connection(ws) {
 
+    // 最初の接続であれば、球を送る
+    if (connections.length == 0) {
+        sendMoveInMessage(ws);
+    }
+
     // WebSocket コネクションを配列に保存
     connections.push(ws);
 
@@ -45,11 +50,8 @@ wss.on('connection', function connection(ws) {
         if (jsonObject['move'] == 'out') {
             // ランダムに他の端末を選択
             var connection = getRandomConnection();
-            if (connection != null) {
-                // その端末に球を送る
-                var m = {'move':'in'};
-                connection.send(JSON.stringify(m));
-            }
+            // その端末に球を送る
+            sendMoveInMessage(connection)
         }
     });
 });
@@ -66,6 +68,17 @@ function getRandomConnection() {
         connection = connections[index];
     }
     return connection;
+}
+
+/**
+ * 指定した端末に球を送る
+ * @param connection
+ */
+function sendMoveInMessage(connection) {
+    if (connection != null) {
+        var m = {'move': 'in'};
+        connection.send(JSON.stringify(m));
+    }
 }
 
 server.listen(process.env.PORT || 5000);
