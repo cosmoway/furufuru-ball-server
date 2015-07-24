@@ -53,6 +53,12 @@ wss.on('connection', function connection(ws) {
             // その端末に球を送る
             sendMoveInMessage(connection)
         }
+
+        // ゲームオーバーになったら
+        if (jsonObject['game'] == 'over') {
+            // 全ての端末にゲームオーバーのメッセージを送信する
+            sendGameOverMessage(connections);
+        }
     });
 });
 
@@ -79,6 +85,26 @@ function sendMoveInMessage(connection) {
         var m = {'move': 'in'};
         connection.send(JSON.stringify(m));
     }
+}
+
+/**
+ * ゲームオーバーしたことを通知する
+ */
+function sendGameOverMessage(connections) {
+    var m = {'game': 'over'};
+    sendBroadcast(m, connections);
+}
+
+/**
+ * メッセージをブロードキャストする
+ * @param message
+ */
+function sendBroadcast(message, connections) {
+    connections.forEach(function(connection) {
+        if (connection != null) {
+            connection.send(JSON.stringify(message));
+        }
+    });
 }
 
 server.listen(process.env.PORT || 5000);
