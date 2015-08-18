@@ -18,11 +18,6 @@ var connections = [];
 // 接続時
 wss.on('connection', function connection(ws) {
 
-    // 最初の接続であれば、球を送る
-    if (connections.length == 0) {
-        sendMoveInMessage(ws);
-    }
-
     // WebSocket コネクションを配列に保存
     connections.push(ws);
 
@@ -64,6 +59,10 @@ wss.on('connection', function connection(ws) {
         if (jsonObject['game'] == 'start') {
             // 全ての端末にゲームスタートのメッセージを送信する
             sendGameStartMessage(connections);
+
+            // ランダムにコネクションを選び、球を送る
+            var connection = getRandomConnection();
+            sendMoveInMessage(connection);
         }
 
         // ゲームオーバーになったら
