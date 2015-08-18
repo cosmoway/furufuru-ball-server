@@ -54,6 +54,12 @@ wss.on('connection', function connection(ws) {
             sendMoveInMessage(connection)
         }
 
+        // ゲームスタートになったら
+        if (jsonObject['game'] == 'start') {
+            // 全ての端末にゲームスタートのメッセージを送信する
+            sendGameStartMessage(connections);
+        }
+
         // ゲームオーバーになったら
         if (jsonObject['game'] == 'over') {
             // 全ての端末にゲームオーバーのメッセージを送信する
@@ -85,6 +91,14 @@ function sendMoveInMessage(connection) {
         var m = {'move': 'in'};
         connection.send(JSON.stringify(m));
     }
+}
+
+/**
+ * ゲームスタートしたことを通知する
+ */
+function sendGameStartMessage(connections) {
+    var m = {'game': 'start'};
+    sendBroadcast(m, connections);
 }
 
 /**
