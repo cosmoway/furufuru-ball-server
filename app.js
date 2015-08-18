@@ -114,11 +114,11 @@ function sendGameOverMessage(connections) {
  * @param message
  */
 function sendBroadcast(message, connections) {
-    while (connection = connections.pop()) {
+    connections.forEach(function(connection, index) {
         if (connection != null) {
             connection.send(JSON.stringify(message));
         }
-    }
+    });
 }
 
 server.listen(process.env.PORT || 5000);
