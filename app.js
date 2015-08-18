@@ -26,12 +26,18 @@ wss.on('connection', function connection(ws) {
     // WebSocket コネクションを配列に保存
     connections.push(ws);
 
+    // プレイヤー数変化時の処理を行う
+    onChangePlayerCount(connections.length);
+
     // 切断時
     ws.on('close', function () {
         // WebSocket コネクションを配列から削除
         connections = connections.filter(function (conn, i) {
             return (conn !== ws);
         });
+
+        // プレイヤー数変化時の処理を行う
+        onChangePlayerCount(connections.length);
     });
 
     // メッセージ受信時
@@ -67,6 +73,15 @@ wss.on('connection', function connection(ws) {
         }
     });
 });
+
+/**
+ * プレイヤー数が変化したら、変化後のプレイヤー数をブロードキャストする
+ * @param count プレイヤー数
+ */
+function onChangePlayerCount(count) {
+    var m = {'player': 'change', 'count': count};
+    sendBroadcast(m, connections);
+}
 
 /**
  * Websocket コネクション配列の中から、ランダムにコネクションを返す
