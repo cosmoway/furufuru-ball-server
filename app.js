@@ -22,7 +22,7 @@ wss.on('connection', function connection(ws) {
     connections.push(ws);
 
     // プレイヤー数変化時の処理を行う
-    onChangePlayerCount(connections.length);
+    onChangePlayerCount(connections.length, connections);
 
     // 切断時
     ws.on('close', function () {
@@ -32,7 +32,7 @@ wss.on('connection', function connection(ws) {
         });
 
         // プレイヤー数変化時の処理を行う
-        onChangePlayerCount(connections.length);
+        onChangePlayerCount(connections.length, connections);
     });
 
     // メッセージ受信時
@@ -50,7 +50,7 @@ wss.on('connection', function connection(ws) {
         // 球が画面外に出たら...
         if (jsonObject['move'] == 'out') {
             // ランダムに他の端末を選択
-            var connection = getRandomConnection();
+            var connection = getRandomConnection(connections);
             // その端末に球を送る
             sendMoveInMessage(connection)
         }
@@ -61,7 +61,7 @@ wss.on('connection', function connection(ws) {
             sendGameStartMessage(connections);
 
             // ランダムにコネクションを選び、球を送る
-            var connection = getRandomConnection();
+            var connection = getRandomConnection(connections);
             sendMoveInMessage(connection);
         }
 
@@ -77,7 +77,7 @@ wss.on('connection', function connection(ws) {
  * プレイヤー数が変化したら、変化後のプレイヤー数をブロードキャストする
  * @param count プレイヤー数
  */
-function onChangePlayerCount(count) {
+function onChangePlayerCount(count, connections) {
     var m = {'player': 'change', 'count': count};
     sendBroadcast(m, connections);
 }
@@ -86,7 +86,7 @@ function onChangePlayerCount(count) {
  * Websocket コネクション配列の中から、ランダムにコネクションを返す
  * @returns {*}
  */
-function getRandomConnection() {
+function getRandomConnection(connections) {
     var connection = null;
     var length = connections.length;
     if (length > 0) {
