@@ -13,25 +13,32 @@ var server = http.createServer(app);
 var wss = new WebSocketServer({server: server});
 
 // Websocket コネクション配列
-var connections = [];
+var wsConnections = [];
+
+// カレントグループID
+var currGroupId = generateGroupId();
 
 // 接続時
 wss.on('connection', function connection(ws) {
+    // Websocket コネクションにカレントグループIDを登録
+    ws.id = currGroupId;
 
     // WebSocket コネクションを配列に保存
-    connections.push(ws);
+    wsConnections.push(ws);
 
     // プレイヤー数変化時の処理を行う
+    var connections = getConnectionsByGroup(ws.id);
     onChangePlayerCount(connections.length, connections);
 
     // 切断時
     ws.on('close', function () {
         // WebSocket コネクションを配列から削除
-        connections = connections.filter(function (conn, i) {
+        wsConnections = wsConnections.filter(function (conn, i) {
             return (conn !== ws);
         });
 
         // プレイヤー数変化時の処理を行う
+        var connections = getConnectionsByGroup(ws.id);
         onChangePlayerCount(connections.length, connections);
     });
 
@@ -47,6 +54,9 @@ wss.on('connection', function connection(ws) {
             return;
         }
 
+        // 同一グループのコネクションを取得
+        var connections = getConnectionsByGroup(ws.id);
+
         // 球が画面外に出たら...
         if (jsonObject['move'] == 'out') {
             // ランダムに他の端末を選択
@@ -57,6 +67,9 @@ wss.on('connection', function connection(ws) {
 
         // ゲームスタートになったら
         if (jsonObject['game'] == 'start') {
+            // カレントグループID を更新する
+            currGroupId = generateGroupId();
+
             // 全ての端末にゲームスタートのメッセージを送信する
             sendGameStartMessage(connections);
 
@@ -80,6 +93,17 @@ wss.on('connection', function connection(ws) {
 function onChangePlayerCount(count, connections) {
     var m = {'player': 'change', 'count': count};
     sendBroadcast(m, connections);
+}
+
+/**
+ * Websocket コネクション配列の中から、指定された同一グループのコネクション配列を返す
+ * @param groupId
+ * @returns {Array.<T>}
+ */
+function getConnectionsByGroup(groupId) {
+    return wsConnections.filter(function (conn, i) {
+        return (conn.id == groupId);
+    });
 }
 
 /**
@@ -133,6 +157,14 @@ function sendBroadcast(message, connections) {
             connection.send(JSON.stringify(message));
         }
     });
+}
+
+/**
+ * ランダムなグループID を生成する
+ * @returns {number}
+ */
+function generateGroupId() {
+    return Math.floor(Math.random() * 10000000);
 }
 
 server.listen(process.env.PORT || 5000);
